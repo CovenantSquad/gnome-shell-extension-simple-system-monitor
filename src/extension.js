@@ -38,10 +38,11 @@ const Shell = imports.gi.Shell;
 const _ = Domain.gettext;
 
 const netSpeedUnits = ['B/s', 'K/s', 'M/s', 'G/s', 'T/s', 'P/s', 'E/s', 'Z/s', 'Y/s'];
-
+const cpuTempUnits = ['°C', '°F'];
 let lastTotalNetDownBytes = 0;
 let lastTotalNetUpBytes = 0;
 
+let lastCPUTemp = 0;
 let lastCPUUsed = 0;
 let lastCPUTotal = 0;
 
@@ -153,6 +154,25 @@ const getCurrentCPUUsage = () => {
     return currentCPUUsage;
 };
 
+const getCurrentCPUTemp = () => {
+    let currentCPUTemp = 0;
+
+    try {
+        const inputFile = Gio.File.new_for_path('/proc/stacat /sys/class/thermal/thermal_zone*/temp');
+        const [, content] = inputFile.load_contents(null);
+        const contentStr = ByteArray.toString(content/1000);
+         currentCPUTemp = Number.parseInt(content);
+        // Avoid divide by zero
+        if (currentCPUTemp - lastCPUTemp !== 0) {
+            currentCPUTemp = (currentCPUTemp - lastCPUTemp) / (currentCPUTemp - lastCPUTemp);
+        }
+        lastCPUTemp = currentCPUTemp;
+    } catch (e) {
+        logError(e);
+    }
+    return currentCPUTemp;
+};
+
 const getCurrentMemoryUsage = () => {
     let currentMemoryUsage = 0;
 
@@ -231,16 +251,38 @@ const formatUsageVal = (usage, showExtraSpaces, showPercentSign) => {
     );
 };
 
+const formatTempVal = (temp, showExtraSpaces, showUnit) => {
+    let unit = 0;
+    switch (showUnit) {
+        case 0:
+            unit = '';
+        case 1:
+            unit = cpuTempUnits[0];
+        case 2:
+            unit = cpuTempUnits[1];
+    }
+    return (
+        temp
+            .toString()
+            .padStart(showExtraSpaces ? 3 : 2) + (unit)
+    );
+};
+
 const toDisplayString = (
     showExtraSpaces,
     showPercentSign,
+    showUnit,
     texts,
     enable,
     cpuUsage,
+    cpuTemp,
     memoryUsage,
     netSpeed,
 ) => {
     const displayItems = [];
+    displayItems.push(
+        `${texts.cpuTempText} ${formatTempVal(cpuTemp, showExtraSpaces, showUnit)}`,
+    );
     if (enable.isCpuUsageEnable && cpuUsage !== null) {
         displayItems.push(
             `${texts.cpuUsageText} ${formatUsageVal(cpuUsage, showExtraSpaces, showPercentSign)}`,
@@ -387,11 +429,15 @@ class Extension {
     }
 
     _refresh_monitor() {
+        let currentCPUTemp = null;
         let currentCPUUsage = null;
         let currentMemoryUsage = null;
         let currentNetSpeed = null;
         if (this._enable.isCpuUsageEnable) {
             currentCPUUsage = getCurrentCPUUsage(this._refresh_interval);
+        }
+        if (this.enable.isCpuTempEnable) {
+            currentCPUTemp = getCurrentCPUTemp(this.refreshInterval)
         }
         if (this._enable.isMemoryUsageEnable) {
             currentMemoryUsage = getCurrentMemoryUsage();
@@ -404,6 +450,7 @@ class Extension {
             this._showPercentSign,
             this._texts,
             this._enable,
+            currentCPUTemp,
             currentCPUUsage,
             currentMemoryUsage,
             currentNetSpeed,

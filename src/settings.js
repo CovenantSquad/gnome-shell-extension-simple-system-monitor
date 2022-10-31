@@ -12,7 +12,11 @@ var Prefs = class Prefs {
         this.SHOW_EXTRA_SPACES = new PrefValue(settings, 'show-extra-spaces', 'boolean');
         this.SHOW_PERCENT_SIGN = new PrefValue(settings, 'show-percent-sign', 'boolean');
         this.IS_CPU_USAGE_ENABLE = new PrefValue(settings, 'is-cpu-usage-enable', 'boolean');
-        this.IS_CPU_TEMPERATURE_ENABLE = new PrefValue(settings, 'is-cpu-temperature-enable', 'boolean');
+        this.IS_CPU_TEMPERATURE_ENABLE = new PrefValue(
+            settings,
+            'is-cpu-temperature-enable',
+            'boolean',
+        );
         this.CPU_USAGE_TEXT = new PrefValue(settings, 'cpu-usage-text', 'string');
         this.CPU_TEMPERATURE_TEXT = new PrefValue(settings, 'cpu-temperature-text', 'string');
         this.IS_MEMORY_USAGE_ENABLE = new PrefValue(settings, 'is-memory-usage-enable', 'boolean');

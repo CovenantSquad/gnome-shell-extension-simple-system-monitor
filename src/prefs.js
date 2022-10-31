@@ -108,7 +108,9 @@ const SimpleSystemMonitorPrefsWidget = GObject.registerClass(
             this._show_percent_sign_switch.set_active(Configuration.SHOW_PERCENT_SIGN.get());
             this._cpu_usage_enable_switch.set_active(Configuration.IS_CPU_USAGE_ENABLE.get());
             this._cpu_usage_text.set_text(Configuration.CPU_USAGE_TEXT.get());
-            this._cpu_temperature_enable_switch.set_active(Configuration.IS_CPU_TEMPERATURE_ENABLE.get());
+            this._cpu_temperature_enable_switch.set_active(
+                Configuration.IS_CPU_TEMPERATURE_ENABLE.get(),
+            );
             this._cpu_temperature_text.set_text(Configuration.CPU_TEMPERATURE_TEXT.get());
             this._memory_usage_enable_switch.set_active(Configuration.IS_MEMORY_USAGE_ENABLE.get());
             this._memory_usage_text.set_text(Configuration.MEMORY_USAGE_TEXT.get());

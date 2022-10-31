@@ -154,19 +154,19 @@ const getCurrentCPUUsage = () => {
     return currentCPUUsage;
 };
 
-const getCurrentCPUTemp = () => {
+const getCurrentCPUTemperature = () => {
     let currentCPUTemp = 0;
 
     try {
         const inputFile = Gio.File.new_for_path('/sys/class/thermal/thermal_zone*/temp');
         const [, content] = inputFile.load_contents(null);
-        const highCoreTemp = Math.max(content); 
-        // const contentStr = ByteArray.toString(highCoreTemp/1000);
-        currentCPUTemp = Number.parseInt(content);
-        // Avoid divide by zero
-        // if (currentCPUTemp - lastCPUTemp !== 0) {
-        //     currentCPUTemp = (currentCPUTemp - lastCPUTemp) / (currentCPUTemp - lastCPUTemp);
-        // }
+        // print(content);
+        let values = [];
+        content.forEach((element) => {
+            values.push(Number.parseInt(element));
+        });
+        global.log('hello world');
+        currentCPUTemp = Math.max(values);
         lastCPUTemp = currentCPUTemp;
     } catch (e) {
         logError(e);
@@ -254,7 +254,7 @@ const formatUsageVal = (usage, showExtraSpaces, showPercentSign) => {
 
 const formatTempVal = (temp, showExtraSpaces, showUnit) => {
     //Used for debug porpuses
-    showUnit = 1  
+    showUnit = 1;
     let unit = 0;
     switch (showUnit) {
         case 0:
@@ -264,11 +264,7 @@ const formatTempVal = (temp, showExtraSpaces, showUnit) => {
         case 2:
             unit = cpuTempUnits[1];
     }
-    return (
-        temp
-            .toString()
-            .padStart(showExtraSpaces ? 3 : 2) + (unit)
-    );
+    return temp.toString().padStart(showExtraSpaces ? 3 : 2) + unit;
 };
 
 const toDisplayString = (
@@ -278,14 +274,20 @@ const toDisplayString = (
     texts,
     enable,
     cpuUsage,
-    cpuTemp,
+    cpuTemperature,
     memoryUsage,
     netSpeed,
 ) => {
     const displayItems = [];
-    displayItems.push(
-        `'t:' ${formatTempVal(cpuTemp, showExtraSpaces, showUnit)}`,
-    );
+    if (enable.isCpuTemperatureEnable && cpuTemperature !== null) {
+        displayItems.push(
+            `${texts.cpuTemperatureText} ${formatTempVal(
+                cpuTemperature,
+                showExtraSpaces,
+                showUnit,
+            )}`,
+        );
+    }
     if (enable.isCpuUsageEnable && cpuUsage !== null) {
         displayItems.push(
             `${texts.cpuUsageText} ${formatUsageVal(cpuUsage, showExtraSpaces, showPercentSign)}`,
@@ -352,7 +354,11 @@ const Indicator = GObject.registerClass(
         }
 
         setText(text) {
-            return this._label.set_text(text);
+            try {
+                return this._label.set_text(text);
+            } catch (e) {
+                logError(e);
+            }
         }
     },
 );
@@ -441,8 +447,8 @@ class Extension {
         if (this._enable.isCpuUsageEnable) {
             currentCPUUsage = getCurrentCPUUsage(this._refresh_interval);
         }
-        if (this.enable.isCpuTempEnable) {
-            currentCPUTemperature = getCurrentCPUTemp(this.refreshInterval)
+        if (this.enable.isCpuTemperatureEnable) {
+            currentCPUTemperature = getCurrentCPUTemperature(this.refreshInterval);
         }
         if (this._enable.isMemoryUsageEnable) {
             currentMemoryUsage = getCurrentMemoryUsage();
@@ -475,7 +481,7 @@ class Extension {
 
         this._prefs.IS_CPU_TEMPERATURE_ENABLE.changed(() => {
             this._enable.isCpuTemperatureEnable = this._prefs.IS_CPU_TEMPERATURE_ENABLE.get();
-        })
+        });
 
         this._prefs.IS_CPU_USAGE_ENABLE.changed(() => {
             this._enable.isCpuUsageEnable = this._prefs.IS_CPU_USAGE_ENABLE.get();

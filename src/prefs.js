@@ -74,6 +74,8 @@ const SimpleSystemMonitorPrefsWidget = GObject.registerClass(
             'show_percent_sign_switch',
             'cpu_usage_enable_switch',
             'cpu_usage_text',
+            'cpu_temperature_enable_switch',
+            'cpu_temperature_text',
             'memory_usage_enable_switch',
             'memory_usage_text',
             'download_speed_enable_switch',
@@ -106,6 +108,8 @@ const SimpleSystemMonitorPrefsWidget = GObject.registerClass(
             this._show_percent_sign_switch.set_active(Configuration.SHOW_PERCENT_SIGN.get());
             this._cpu_usage_enable_switch.set_active(Configuration.IS_CPU_USAGE_ENABLE.get());
             this._cpu_usage_text.set_text(Configuration.CPU_USAGE_TEXT.get());
+            this._cpu_temperature_enable_switch.set_active(Configuration.IS_CPU_TEMPERATURE_ENABLE.get());
+            this._cpu_temperature_text.set_text(Configuration.CPU_TEMPERATURE_TEXT.get());
             this._memory_usage_enable_switch.set_active(Configuration.IS_MEMORY_USAGE_ENABLE.get());
             this._memory_usage_text.set_text(Configuration.MEMORY_USAGE_TEXT.get());
             this._download_speed_enable_switch.set_active(
@@ -132,6 +136,8 @@ const SimpleSystemMonitorPrefsWidget = GObject.registerClass(
             Configuration.SHOW_PERCENT_SIGN.set(DEFAULT_SETTINGS.showPercentSign);
             Configuration.IS_CPU_USAGE_ENABLE.set(DEFAULT_SETTINGS.isCpuUsageEnable);
             Configuration.CPU_USAGE_TEXT.set(DEFAULT_SETTINGS.cpuUsageText);
+            Configuration.IS_CPU_TEMPERATURE_ENABLE.set(DEFAULT_SETTINGS.isCpuTemperatureEnable);
+            Configuration.CPU_TEMPERATURE_TEXT.set(DEFAULT_SETTINGS.cpuTemperatureText);
             Configuration.IS_MEMORY_USAGE_ENABLE.set(DEFAULT_SETTINGS.isMemoryUsageEnable);
             Configuration.MEMORY_USAGE_TEXT.set(DEFAULT_SETTINGS.memoryUsageText);
             Configuration.IS_DOWNLOAD_SPEED_ENABLE.set(DEFAULT_SETTINGS.isDownloadSpeedEnable);
@@ -184,6 +190,10 @@ const SimpleSystemMonitorPrefsWidget = GObject.registerClass(
             Configuration.IS_CPU_USAGE_ENABLE.set(widget.get_active());
         }
 
+        cpu_temperature_enable_switch_changed(widget) {
+            Configuration.IS_CPU_TEMPERATURE_ENABLE.set(widget.get_active());
+        }
+
         memory_usage_enable_switch_changed(widget) {
             Configuration.IS_MEMORY_USAGE_ENABLE.set(widget.get_active());
         }
@@ -198,6 +208,10 @@ const SimpleSystemMonitorPrefsWidget = GObject.registerClass(
 
         cpu_usage_text_changed(widget) {
             Configuration.CPU_USAGE_TEXT.set(widget.get_text());
+        }
+
+        cpu_temperature_text_changed(widget) {
+            Configuration.CPU_TEMPERATURE_TEXT.set(widget.get_text());
         }
 
         memory_usage_text_changed(widget) {

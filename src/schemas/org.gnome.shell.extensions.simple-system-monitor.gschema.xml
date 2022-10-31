@@ -36,6 +36,16 @@
       <summary>CPU Usage Text</summary>
       <description>CPU Usage Text</description>
     </key>
+    <key type="b" name="is-cpu-temperature-enable">
+      <default>true</default>
+      <summary>Show CPU Temperature</summary>
+      <description>Show CPU Temperature</description>
+    </key>
+    <key type="s" name="cpu-temperature-text">
+      <default>''</default>
+      <summary>CPU Temperature Text</summary>
+      <description>CPU Temperature Text</description>
+    </key>
     <key type="b" name="is-memory-usage-enable">
       <default>true</default>
       <summary>Show Memory Usage</summary>

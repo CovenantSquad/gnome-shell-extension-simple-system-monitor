@@ -158,14 +158,15 @@ const getCurrentCPUTemp = () => {
     let currentCPUTemp = 0;
 
     try {
-        const inputFile = Gio.File.new_for_path('/proc/stacat /sys/class/thermal/thermal_zone*/temp');
+        const inputFile = Gio.File.new_for_path('/sys/class/thermal/thermal_zone*/temp');
         const [, content] = inputFile.load_contents(null);
-        const contentStr = ByteArray.toString(content/1000);
-         currentCPUTemp = Number.parseInt(content);
+        const highCoreTemp = Math.max(content); 
+        // const contentStr = ByteArray.toString(highCoreTemp/1000);
+        currentCPUTemp = Number.parseInt(content);
         // Avoid divide by zero
-        if (currentCPUTemp - lastCPUTemp !== 0) {
-            currentCPUTemp = (currentCPUTemp - lastCPUTemp) / (currentCPUTemp - lastCPUTemp);
-        }
+        // if (currentCPUTemp - lastCPUTemp !== 0) {
+        //     currentCPUTemp = (currentCPUTemp - lastCPUTemp) / (currentCPUTemp - lastCPUTemp);
+        // }
         lastCPUTemp = currentCPUTemp;
     } catch (e) {
         logError(e);
@@ -252,6 +253,8 @@ const formatUsageVal = (usage, showExtraSpaces, showPercentSign) => {
 };
 
 const formatTempVal = (temp, showExtraSpaces, showUnit) => {
+    //Used for debug porpuses
+    showUnit = 1  
     let unit = 0;
     switch (showUnit) {
         case 0:
@@ -281,7 +284,7 @@ const toDisplayString = (
 ) => {
     const displayItems = [];
     displayItems.push(
-        `${texts.cpuTempText} ${formatTempVal(cpuTemp, showExtraSpaces, showUnit)}`,
+        `'t:' ${formatTempVal(cpuTemp, showExtraSpaces, showUnit)}`,
     );
     if (enable.isCpuUsageEnable && cpuUsage !== null) {
         displayItems.push(
@@ -369,6 +372,7 @@ class Extension {
         this._prefs = new Settings.Prefs();
 
         this._texts = {
+            cpuTemperatureText: this._prefs.CPU_TEMPERATURE_TEXT.get(),
             cpuUsageText: this._prefs.CPU_USAGE_TEXT.get(),
             memoryUsageText: this._prefs.MEMORY_USAGE_TEXT.get(),
             downloadSpeedText: this._prefs.DOWNLOAD_SPEED_TEXT.get(),
@@ -377,6 +381,7 @@ class Extension {
         };
 
         this._enable = {
+            isCpuTemperatureEnable: this._prefs.IS_CPU_TEMPERATURE_ENABLE.get(),
             isCpuUsageEnable: this._prefs.IS_CPU_USAGE_ENABLE.get(),
             isMemoryUsageEnable: this._prefs.IS_MEMORY_USAGE_ENABLE.get(),
             isDownloadSpeedEnable: this._prefs.IS_DOWNLOAD_SPEED_ENABLE.get(),
@@ -429,7 +434,7 @@ class Extension {
     }
 
     _refresh_monitor() {
-        let currentCPUTemp = null;
+        let currentCPUTemperature = null;
         let currentCPUUsage = null;
         let currentMemoryUsage = null;
         let currentNetSpeed = null;
@@ -437,7 +442,7 @@ class Extension {
             currentCPUUsage = getCurrentCPUUsage(this._refresh_interval);
         }
         if (this.enable.isCpuTempEnable) {
-            currentCPUTemp = getCurrentCPUTemp(this.refreshInterval)
+            currentCPUTemperature = getCurrentCPUTemp(this.refreshInterval)
         }
         if (this._enable.isMemoryUsageEnable) {
             currentMemoryUsage = getCurrentMemoryUsage();
@@ -450,7 +455,7 @@ class Extension {
             this._showPercentSign,
             this._texts,
             this._enable,
-            currentCPUTemp,
+            currentCPUTemperature,
             currentCPUUsage,
             currentMemoryUsage,
             currentNetSpeed,
@@ -467,6 +472,10 @@ class Extension {
         this._prefs.SHOW_PERCENT_SIGN.changed(() => {
             this._showPercentSign = this._prefs.SHOW_PERCENT_SIGN.get();
         });
+
+        this._prefs.IS_CPU_TEMPERATURE_ENABLE.changed(() => {
+            this._enable.isCpuTemperatureEnable = this._prefs.IS_CPU_TEMPERATURE_ENABLE.get();
+        })
 
         this._prefs.IS_CPU_USAGE_ENABLE.changed(() => {
             this._enable.isCpuUsageEnable = this._prefs.IS_CPU_USAGE_ENABLE.get();
